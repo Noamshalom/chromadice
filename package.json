@@ -1,0 +1,28 @@
+{
+  "name": "chromadice",
+  "version": "0.1.0",
+  "description": "Dice mosaic generator: classic dice art, and multi-view mosaics that show a different picture from each side (after Tanasra, Elber and Sterman, Bridges 2023).",
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "demo": "tsx scripts/smoke.ts",
+    "gallery": "tsx scripts/gallery.ts"
+  },
+  "dependencies": {
+    "three": "^0.186.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "@types/three": "^0.186.0",
+    "sharp": "^0.35.5",
+    "tsx": "^4.0.0",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.4",
+    "vitest": "^5.0.3"
+  }
+}

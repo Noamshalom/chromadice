@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ChromaDice</title>
+  <meta name="description" content="Multi-view dice mosaic generator: two or three pictures on one array of dice, a different one from each side. 3D preview, assembly plan, shopping list." />
+  <meta name="color-scheme" content="light" />
+  <link rel="stylesheet" href="./src/web/style.css" />
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <span class="mark" aria-hidden="true"><i></i><i></i><i></i></span>
+      <h1>ChromaDice</h1>
+    </div>
+    <nav class="modes" role="radiogroup" aria-label="Number of pictures">
+      <button class="mode active" data-mode="single"><b>1 picture</b><small>classic dice art</small></button>
+      <button class="mode" data-mode="edge"><b>2 pictures</b><small>dice on an edge</small></button>
+      <button class="mode" data-mode="corner"><b>3 pictures</b><small>dice on a corner</small></button>
+    </nav>
+    <p class="lede">One array of dice. A different picture from each side.</p>
+  </header>
+
+  <section class="gallery">
+    <div class="gallery-h"><h2>Gallery</h2><span class="muted">Click one to load it, then change anything.</span></div>
+    <div id="gallery" class="gallery-row"></div>
+  </section>
+
+  <main class="app">
+    <aside class="side">
+      <section class="card">
+        <header class="card-h"><h2>Pictures</h2><span class="muted" id="pic-hint">One per viewer. The bright shape is what lands on the dice: drag it, scroll to zoom.</span></header>
+        <div class="shape-row" id="shape-row">
+          <span class="muted">Stretch</span>
+          <div class="seg light" id="shape" role="radiogroup" aria-label="How much the picture may be stretched to fit the view">
+            <button data-stretch="crop">None</button>
+            <button data-stretch="auto" class="active">Slight</button>
+            <button data-stretch="stretch">Full</button>
+          </div>
+          <span class="muted" id="shape-hint"></span>
+        </div>
+        <div id="slots" class="slots"></div>
+      </section>
+
+      <section class="card">
+        <header class="card-h"><h2>Size</h2><output id="dice-count" class="muted">72 × 90 = 6,480 dice</output></header>
+        <div class="dims">
+          <label><span>Across</span><input id="grid-w" type="number" min="8" max="160" value="72" /></label>
+          <label id="grid-h-wrap"><span>Up</span><input id="grid-h" type="number" min="8" max="160" value="90" /></label>
+        </div>
+      </section>
+
+      <section class="card" id="dice-card">
+        <header class="card-h"><h2>Dice</h2><span class="muted" id="dice-hint">Multi-view mosaics use one colour.</span></header>
+        <div id="swatches" class="swatches"></div>
+        <details id="colour-block" class="sub" hidden>
+          <summary>Colour style</summary>
+          <label class="field"><span>Style</span>
+            <select id="style"><option value="smooth">Tint: colour regions, dithered light</option><option value="poster">Poster, no dithering</option><option value="dithered">Fully dithered</option></select>
+          </label>
+          <label class="field" id="smooth-row"><span>Coherence</span><input id="smooth" type="range" min="0" max="0.012" step="0.0005" value="0.003" /><output id="smooth-out">0.003</output></label>
+          <label class="field" id="harm-row" hidden><span>Hues across views</span>
+            <select id="harm"><option value="mean">Shared</option><option value="brightest">From the lighter view</option><option value="duotone">Duotone</option><option value="none">Independent</option></select>
+          </label>
+        </details>
+      </section>
+
+      <details class="card sub-card">
+        <summary>Advanced</summary>
+        <label class="field"><span>Refinement passes</span><input id="sweeps" type="range" min="0" max="8" value="3" /><output id="sweeps-out">3</output></label>
+        <label class="field"><span>Chroma weight</span><input id="chroma" type="range" min="0.2" max="1.5" step="0.05" value="0.6" /><output id="chroma-out">0.60</output></label>
+        <label class="field"><span>Darken</span><input id="gamma" type="range" min="0.6" max="2" step="0.05" value="1" /><output id="gamma-out">1.00</output></label>
+        <label class="field"><span>Keep hues</span><input id="hue" type="range" min="0" max="20" step="1" value="6" /><output id="hue-out">6</output></label>
+        <label class="check"><input id="fitL" type="checkbox" checked /> Fit lightness to the dice range</label>
+        <label class="check"><input id="fitC" type="checkbox" checked /> Fit chroma to the dice range</label>
+        <label class="check"><input id="grey" type="checkbox" /> Grey-scale targets</label>
+        <input id="pip" type="hidden" value="0.14" />
+        <input id="keep-aspect" type="hidden" value="1" />
+      </details>
+
+      <button id="build" class="primary">Build</button>
+      <p id="status" class="status" aria-live="polite">Ready.</p>
+
+      <section class="card" id="results" hidden>
+        <header class="card-h"><h2>Shopping list</h2></header>
+        <table id="bom"></table>
+        <div class="exports">
+          <button data-export="plan">Assembly plan</button>
+          <button data-export="bom">Shopping list</button>
+          <button data-export="svg">View images</button>
+          <button data-export="json">JSON</button>
+        </div>
+      </section>
+    </aside>
+
+    <section class="stage">
+      <div id="viewer" class="viewer">
+        <div class="snaps">
+          <div class="seg">
+            <button data-snap="view1">1</button>
+            <button data-snap="view2" hidden>2</button>
+            <button data-snap="view3" hidden>3</button>
+            <button data-snap="top" hidden>Top</button>
+            <button data-snap="free" class="active">Orbit</button>
+          </div>
+          <button id="levels-toggle" class="pill">Pips</button>
+        </div>
+      </div>
+      <div id="panels" class="panels"></div>
+      <p class="foot">After Tanasra, Elber &amp; Sterman, <i>3D Dice Mosaics</i>, Bridges 2023 · <a id="repo" href="https://github.com/noamshalom/chromadice">Source on GitHub</a></p>
+    </section>
+  </main>
+  <script type="module" src="./src/web/main.ts"></script>
+</body>
+</html>
